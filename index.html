@@ -32,11 +32,13 @@
             font-size: 3em;
             margin: 20px 0;
             color: #4682b4;
+            display: none; /* Initially hidden */
         }
         #options {
             display: flex;
             flex-direction: column;
             gap: 15px;
+            display: none; /* Initially hidden */
         }
         .option-btn {
             font-size: 2.5em;
@@ -57,10 +59,12 @@
             font-size: 2em;
             margin: 20px 0;
             height: 50px;
+            display: none; /* Initially hidden */
         }
         #score {
             font-size: 1.5em;
             color: #ff4500;
+            display: none; /* Initially hidden */
         }
         #restart {
             display: none;
@@ -74,6 +78,18 @@
         }
         #restart:hover {
             background-color: #ffc400;
+        }
+        #start {
+            font-size: 1.5em;
+            padding: 10px 20px;
+            background-color: #87ceeb;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        #start:hover {
+            background-color: #00bfff;
         }
         /* Mobile-specific adjustments */
         @media (max-width: 600px) {
@@ -92,6 +108,7 @@
         <div id="options"></div>
         <div id="feedback"></div>
         <div id="score">Score: 0/10</div>
+        <button id="start">Start Game!</button>
         <button id="restart">Play Again!</button>
     </div>
 
@@ -102,7 +119,7 @@
 
         function generateProblem() {
             const isAddition = Math.random() < 0.5;
-            const a = Math.floor(Math.random() * 10);
+            let a = Math.floor(Math.random() * 10); // Changed to let for swap compatibility
             let b = Math.floor(Math.random() * 10);
             let correctAnswer;
 
@@ -119,7 +136,7 @@
 
         function getWrongAnswers(correct, isAddition) {
             const wrongs = new Set();
-            while (wrongs.size < 2) {
+            while (wrongs.size < 3) {  // 3 wrongs for 4 total options
                 let wrong = Math.floor(Math.random() * (isAddition ? 19 : 10)); // Addition up to 18, subtraction 0-9
                 if (wrong !== correct) wrongs.add(wrong);
             }
@@ -140,6 +157,8 @@
                 document.getElementById('options').innerHTML = '';
                 document.getElementById('feedback').innerText = `You got ${score} out of ${totalQuestions}! 🎉`;
                 document.getElementById('restart').style.display = 'block';
+                // Hide score during game over, but show feedback
+                document.getElementById('score').style.display = 'none';
                 return;
             }
 
@@ -169,27 +188,41 @@
                 feedback.innerText = 'Yay! Correct! 😊';
                 feedback.style.color = 'green';
                 score++;
-                // Optional: Play success sound (browser may require user interaction)
-                new Audio('https://www.soundjay.com/buttons/beep-07.mp3').play().catch(() => {});
+                currentQuestion++;
+                displayQuestion();  // Immediate next question on correct
             } else {
                 feedback.innerText = `Oops! The answer is ${correct}. Try again! 😔`;
                 feedback.style.color = 'red';
-                // Optional: Play error sound
-                new Audio('https://www.soundjay.com/buttons/beep-08b.mp3').play().catch(() => {});
+                currentQuestion++;
+                setTimeout(displayQuestion, 2000);  // Delay only on incorrect
             }
-            currentQuestion++;
-            setTimeout(displayQuestion, 2000); // Wait 2 seconds before next question
         }
+
+        function startGame() {
+            currentQuestion = 0;
+            score = 0;
+            document.getElementById('start').style.display = 'none';
+            document.getElementById('problem').style.display = 'block';
+            document.getElementById('options').style.display = 'flex';
+            document.getElementById('feedback').style.display = 'block';
+            document.getElementById('score').style.display = 'block';
+            displayQuestion();
+        }
+
+        document.getElementById('start').onclick = startGame;
 
         document.getElementById('restart').onclick = () => {
             currentQuestion = 0;
             score = 0;
             document.getElementById('restart').style.display = 'none';
+            document.getElementById('problem').style.display = 'block';
+            document.getElementById('options').style.display = 'flex';
+            document.getElementById('feedback').style.display = 'block';
+            document.getElementById('score').style.display = 'block';
             displayQuestion();
         };
 
-        // Start the game
-        displayQuestion();
+        // Game does not start automatically; waits for start button
     </script>
 </body>
 </html>
