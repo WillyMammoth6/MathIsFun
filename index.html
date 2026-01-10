@@ -7,31 +7,34 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f8ff;
+            background-color: #121212; /* Dark background */
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
-            color: #333;
+            color: #e0e0e0; /* Light text */
             text-align: center;
+            position: relative; /* For absolute positioning of canvas */
         }
         #game-container {
             max-width: 90%;
             padding: 20px;
-            background-color: #fff;
+            background-color: #1e1e1e; /* Darker container */
             border-radius: 15px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3); /* Subtle shadow */
+            position: relative;
+            z-index: 1; /* Ensure game content is above canvas if needed */
         }
         h1 {
             font-size: 2em;
-            color: #ff6347;
+            color: #ff6347; /* Bright accent */
             margin-bottom: 20px;
         }
         #problem {
             font-size: 3em;
             margin: 20px 0;
-            color: #4682b4;
+            color: #add8e6; /* Light blue for visibility */
             display: none; /* Initially hidden */
         }
         #options {
@@ -43,7 +46,8 @@
         .option-btn {
             font-size: 2.5em;
             padding: 20px;
-            background-color: #90ee90;
+            background-color: #333333; /* Dark button */
+            color: #ffffff; /* Light text */
             border: none;
             border-radius: 10px;
             cursor: pointer;
@@ -53,7 +57,7 @@
             margin: 0 auto;
         }
         .option-btn:hover {
-            background-color: #32cd32;
+            background-color: #555555; /* Lighter hover */
         }
         #feedback {
             font-size: 2em;
@@ -63,14 +67,15 @@
         }
         #score {
             font-size: 1.5em;
-            color: #ff4500;
+            color: #ff4500; /* Bright orange */
             display: none; /* Initially hidden */
         }
         #restart {
             display: none;
             font-size: 1.5em;
             padding: 10px 20px;
-            background-color: #ffd700;
+            background-color: #ffd700; /* Gold for contrast */
+            color: #000000; /* Dark text */
             border: none;
             border-radius: 10px;
             cursor: pointer;
@@ -82,7 +87,8 @@
         #start {
             font-size: 1.5em;
             padding: 10px 20px;
-            background-color: #87ceeb;
+            background-color: #87ceeb; /* Sky blue */
+            color: #000000; /* Dark text */
             border: none;
             border-radius: 10px;
             cursor: pointer;
@@ -90,6 +96,16 @@
         }
         #start:hover {
             background-color: #00bfff;
+        }
+        #fireworks {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: none;
+            z-index: 2; /* Above game content for overlay */
         }
         /* Mobile-specific adjustments */
         @media (max-width: 600px) {
@@ -102,6 +118,7 @@
     </style>
 </head>
 <body>
+    <canvas id="fireworks"></canvas>
     <div id="game-container">
         <h1>Math Adventure!</h1>
         <div id="problem"></div>
@@ -117,20 +134,113 @@
         let score = 0;
         const totalQuestions = 10;
 
+        // Fireworks setup
+        const canvas = document.getElementById('fireworks');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let animationFrameId;
+        let fireworksTimeout;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.radius = Math.random() * 2 + 1;
+                this.velocity = {
+                    x: (Math.random() - 0.5) * 10,
+                    y: (Math.random() - 0.5) * 10
+                };
+                this.alpha = 1;
+                this.friction = 0.99;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.closePath();
+                ctx.restore();
+            }
+
+            update() {
+                this.velocity.x *= this.friction;
+                this.velocity.y *= this.friction;
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+                this.alpha -= 0.01;
+            }
+        }
+
+        function createFireworks() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+            for (let i = 0; i < 100; i++) { // Number of particles
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                particles.push(new Particle(centerX, centerY, color));
+            }
+        }
+
+        function animateFireworks() {
+            ctx.globalAlpha = 0.1;
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach((particle, index) => {
+                if (particle.alpha <= 0) {
+                    particles.splice(index, 1);
+                } else {
+                    particle.update();
+                    particle.draw();
+                }
+            });
+
+            if (particles.length > 0) {
+                animationFrameId = requestAnimationFrame(animateFireworks);
+            } else {
+                cancelAnimationFrame(animationFrameId);
+                canvas.style.display = 'none';
+            }
+        }
+
+        function startFireworks() {
+            particles = [];
+            canvas.style.display = 'block';
+            createFireworks();
+            animateFireworks();
+            // Stop after 2 seconds regardless
+            fireworksTimeout = setTimeout(() => {
+                particles = [];
+            }, 2000);
+        }
+
         function generateProblem() {
             const isAddition = Math.random() < 0.5;
-            let a = Math.floor(Math.random() * 10); // Changed to let for swap compatibility
-            let b = Math.floor(Math.random() * 10);
+            const a = Math.floor(Math.random() * 10);
+            const b = Math.floor(Math.random() * 3); // 0, 1, or 2 for easier questions
             let correctAnswer;
 
             if (isAddition) {
                 correctAnswer = a + b;
                 return { problem: `${a} + ${b} = ?`, correct: correctAnswer, isAddition: true };
             } else {
-                // Ensure a >= b for non-negative result
-                if (b > a) [a, b] = [b, a]; // Swap if needed
-                correctAnswer = a - b;
-                return { problem: `${a} - ${b} = ?`, correct: correctAnswer, isAddition: false };
+                let num1 = a;
+                let num2 = b;
+                // Ensure num1 >= num2 for non-negative result
+                if (num2 > num1) [num1, num2] = [num2, num1]; // Swap if needed
+                correctAnswer = num1 - num2;
+                return { problem: `${num1} - ${num2} = ?`, correct: correctAnswer, isAddition: false };
             }
         }
 
@@ -186,13 +296,14 @@
             const feedback = document.getElementById('feedback');
             if (selected === correct) {
                 feedback.innerText = 'Yay! Correct! 😊';
-                feedback.style.color = 'green';
+                feedback.style.color = '#32cd32'; /* Green for correct */
                 score++;
                 currentQuestion++;
-                displayQuestion();  // Immediate next question on correct
+                startFireworks(); // Trigger fireworks without delaying
+                displayQuestion();  // Immediate next question
             } else {
                 feedback.innerText = `Oops! The answer is ${correct}. Try again! 😔`;
-                feedback.style.color = 'red';
+                feedback.style.color = '#ff4500'; /* Red for incorrect */
                 currentQuestion++;
                 setTimeout(displayQuestion, 2000);  // Delay only on incorrect
             }
