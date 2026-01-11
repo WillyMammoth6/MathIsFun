@@ -2,338 +2,433 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fun Math Game for Kids</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Math Zoo</title>
     <style>
+        /* --- RESET & BASE STYLES --- */
+        * {
+            box-sizing: border-box;
+            user-select: none; /* Prevents text selection on tapping */
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background-color: #121212; /* Dark background */
+            margin: 0;
+            padding: 0;
+            background-color: #121212; /* Dark Theme Background */
+            color: #ffffff;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif; /* Friendly font */
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            color: #e0e0e0; /* Light text */
-            text-align: center;
-            position: relative; /* For absolute positioning of canvas */
         }
-        #game-container {
-            max-width: 90%;
-            padding: 20px;
-            background-color: #1e1e1e; /* Darker container */
-            border-radius: 15px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3); /* Subtle shadow */
+
+        #app {
+            width: 100%;
+            max-width: 600px; /* Tablet constraint */
+            height: 100%;
             position: relative;
-            z-index: 1; /* Ensure game content is above canvas if needed */
-        }
-        h1 {
-            font-size: 2em;
-            color: #ff6347; /* Bright accent */
-            margin-bottom: 20px;
-        }
-        #problem {
-            font-size: 3em;
-            margin: 20px 0;
-            color: #add8e6; /* Light blue for visibility */
-            display: none; /* Initially hidden */
-        }
-        #options {
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            display: none; /* Initially hidden */
+            justify-content: center;
         }
-        .option-btn {
-            font-size: 2.5em;
-            padding: 20px;
-            background-color: #333333; /* Dark button */
-            color: #ffffff; /* Light text */
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: background-color 0.3s;
+
+        /* --- UTILITY CLASSES --- */
+        .hidden {
+            display: none !important;
+        }
+
+        .screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             width: 100%;
+            height: 100%;
+            text-align: center;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* --- TYPOGRAPHY --- */
+        h1 {
+            font-size: 3rem;
+            color: #FFD700; /* Gold */
+            text-shadow: 2px 2px 0px #d35400;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: 1.2rem;
+            color: #bdc3c7;
+        }
+
+        /* --- BUTTONS --- */
+        button {
+            border: none;
+            outline: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.4);
+            transition: transform 0.1s, filter 0.1s;
+        }
+
+        button:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        .btn-large {
+            font-size: 1.5rem;
+            padding: 15px 40px;
+            border-radius: 50px;
+            margin: 10px;
+            width: 80%;
             max-width: 300px;
-            margin: 0 auto;
         }
-        .option-btn:hover {
-            background-color: #555555; /* Lighter hover */
+
+        .btn-easy { background-color: #2ecc71; color: white; }
+        .btn-hard { background-color: #e74c3c; color: white; }
+        .btn-restart { background-color: #3498db; color: white; }
+
+        /* --- GAME SCREEN SPECIFICS --- */
+        .hud {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.5rem;
+            color: #f1c40f;
+            font-weight: bold;
+            background: rgba(255,255,255,0.1);
+            padding: 5px 15px;
+            border-radius: 15px;
         }
-        #feedback {
-            font-size: 2em;
-            margin: 20px 0;
-            height: 50px;
-            display: none; /* Initially hidden */
+
+        .question-box {
+            background-color: #2c3e50;
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            width: 100%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            border: 4px solid #34495e;
         }
-        #score {
-            font-size: 1.5em;
-            color: #ff4500; /* Bright orange */
-            display: none; /* Initially hidden */
+
+        .question-text {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #ecf0f1;
         }
-        #restart {
-            display: none;
-            font-size: 1.5em;
-            padding: 10px 20px;
-            background-color: #ffd700; /* Gold for contrast */
-            color: #000000; /* Dark text */
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            margin-top: 20px;
+
+        .answers-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            width: 100%;
         }
-        #restart:hover {
-            background-color: #ffc400;
+
+        .answer-btn {
+            background-color: #8e44ad;
+            color: white;
+            font-size: 2.5rem;
+            padding: 20px;
+            border-radius: 15px;
         }
-        #start {
-            font-size: 1.5em;
-            padding: 10px 20px;
-            background-color: #87ceeb; /* Sky blue */
-            color: #000000; /* Dark text */
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            margin-top: 20px;
+
+        .answer-btn:active {
+            background-color: #9b59b6;
         }
-        #start:hover {
-            background-color: #00bfff;
-        }
-        #fireworks {
+
+        /* --- FEEDBACK OVERLAY (ANIMAL PICTURE) --- */
+        #feedback-screen {
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            display: none;
-            z-index: 2; /* Above game content for overlay */
+            z-index: 100;
+            background: rgba(0,0,0,0.9);
         }
-        /* Mobile-specific adjustments */
-        @media (max-width: 600px) {
-            h1 { font-size: 1.5em; }
-            #problem { font-size: 2.5em; }
-            .option-btn { font-size: 2em; padding: 15px; }
-            #feedback { font-size: 1.5em; }
-            #score { font-size: 1.2em; }
+
+        .animal-img {
+            max-width: 90%;
+            max-height: 60vh;
+            border-radius: 20px;
+            border: 5px solid #fff;
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+            object-fit: cover;
         }
+
+        .praise-text {
+            font-size: 3rem;
+            color: #2ecc71;
+            margin-top: 20px;
+            font-weight: bold;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
     </style>
 </head>
 <body>
-    <canvas id="fireworks"></canvas>
-    <div id="game-container">
-        <h1>Math Adventure!</h1>
-        <div id="problem"></div>
-        <div id="options"></div>
-        <div id="feedback"></div>
-        <div id="score">Score: 0/10</div>
-        <button id="start">Start Game!</button>
-        <button id="restart">Play Again!</button>
+
+<div id="app">
+    
+    <!-- SCREEN: TITLE -->
+    <div id="title-screen" class="screen">
+        <h1>Math Zoo 🦁</h1>
+        <p>Pick a difficulty to start!</p>
+        <br>
+        <button class="btn-large btn-easy" onclick="game.startGame('easy')">Easy 🙂</button>
+        <button class="btn-large btn-hard" onclick="game.startGame('hard')">Hard 😎</button>
     </div>
 
-    <script>
-        let currentQuestion = 0;
-        let score = 0;
-        const totalQuestions = 10;
+    <!-- SCREEN: GAMEPLAY -->
+    <div id="game-screen" class="screen hidden">
+        <div class="hud">Score: <span id="score-display">0</span></div>
+        
+        <div class="question-box">
+            <div class="question-text" id="question-text">1 + 1 = ?</div>
+        </div>
 
-        // Fireworks setup
-        const canvas = document.getElementById('fireworks');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-        let animationFrameId;
-        let fireworksTimeout;
+        <div class="answers-grid" id="answers-container">
+            <!-- Buttons injected by JS -->
+        </div>
+        <p style="margin-top:20px; opacity: 0.5;">Question <span id="q-count">1</span> / 10</p>
+    </div>
 
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+    <!-- SCREEN: FEEDBACK (CORRECT) -->
+    <div id="feedback-screen" class="screen hidden">
+        <img id="animal-display" class="animal-img" src="" alt="Cute Animal">
+        <div class="praise-text">Correct!</div>
+    </div>
+
+    <!-- SCREEN: GAME OVER -->
+    <div id="end-screen" class="screen hidden">
+        <h1>Great Job!</h1>
+        <h2>Your Score</h2>
+        <h1 style="font-size: 5rem; color: #2ecc71;" id="final-score">0</h1>
+        <p>You answered 10 questions!</p>
+        <br>
+        <button class="btn-large btn-restart" onclick="game.resetToTitle()">Play Again 🔄</button>
+    </div>
+
+</div>
+
+<script>
+/**
+ * Game Logic Module
+ * Handles state, math generation, and DOM updates.
+ */
+const game = {
+    // Configuration
+    maxQuestions: 10,
+    
+    // State
+    score: 0,
+    questionNumber: 0,
+    difficulty: 'easy',
+    currentQuestion: null,
+    isProcessing: false, // Prevents double tapping
+
+    // curated list of high-quality cute animal images
+    animalImages: [
+        "https://images.unsplash.com/photo-1591160690555-5debfba289f0?w=600&q=80", // Golden Retriever Puppy
+        "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&q=80", // Kitten
+        "https://images.unsplash.com/photo-1585110396000-c9285745b25c?w=600&q=80", // Baby Sloth
+        "https://images.unsplash.com/photo-1505628346881-b72e278045a4?w=600&q=80", // Fox
+        "https://images.unsplash.com/photo-1555685812-4b943f1cb0eb?w=600&q=80", // Baby Bunny
+        "https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?w=600&q=80", // Puppy with eyes closed
+        "https://images.unsplash.com/photo-1535241556845-3a31a1913f28?w=600&q=80", // Meerkat
+        "https://images.unsplash.com/photo-1518796745738-41048802f99a?w=600&q=80", // Baby Rabbit
+        "https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?w=600&q=80", // Kitten in basket
+        "https://images.unsplash.com/photo-1501686637-b7aa9c48a882?w=600&q=80"  // Panda
+    ],
+
+    // --- Navigation Functions ---
+
+    startGame: function(mode) {
+        this.difficulty = mode;
+        this.score = 0;
+        this.questionNumber = 0;
+        this.isProcessing = false;
+        
+        // Update UI
+        document.getElementById('score-display').innerText = this.score;
+        this.showScreen('game-screen');
+        
+        // Generate first question
+        this.nextQuestion();
+    },
+
+    resetToTitle: function() {
+        this.showScreen('title-screen');
+    },
+
+    showScreen: function(id) {
+        // Hide all screens
+        document.querySelectorAll('.screen').forEach(el => el.classList.add('hidden'));
+        // Show target
+        document.getElementById(id).classList.remove('hidden');
+    },
+
+    // --- Math Logic ---
+
+    getRandomInt: function(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    },
+
+    generateQuestion: function() {
+        let n1, n2, operator, answer;
+        const isAddition = Math.random() > 0.5; // 50/50 chance of add or subtract
+
+        if (this.difficulty === 'easy') {
+            // Easy: N1 (1-9), N2 (1-2)
+            n1 = this.getRandomInt(1, 9);
+            n2 = this.getRandomInt(1, 2);
+        } else {
+            // Hard: N1 (1-9), N2 (1-9)
+            n1 = this.getRandomInt(1, 9);
+            n2 = this.getRandomInt(1, 9);
         }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
 
-        class Particle {
-            constructor(x, y, color) {
-                this.x = x;
-                this.y = y;
-                this.color = color;
-                this.radius = Math.random() * 2 + 1;
-                this.velocity = {
-                    x: (Math.random() - 0.5) * 10,
-                    y: (Math.random() - 0.5) * 10
-                };
-                this.alpha = 1;
-                this.friction = 0.99;
+        if (isAddition) {
+            operator = '+';
+            answer = n1 + n2;
+        } else {
+            operator = '-';
+            // Logic to prevent negative answers for 6 year olds
+            // Ensure n1 is the larger number
+            if (n2 > n1) {
+                let temp = n1;
+                n1 = n2;
+                n2 = temp;
             }
-
-            draw() {
-                ctx.save();
-                ctx.globalAlpha = this.alpha;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-                ctx.fillStyle = this.color;
-                ctx.fill();
-                ctx.closePath();
-                ctx.restore();
-            }
-
-            update() {
-                this.velocity.x *= this.friction;
-                this.velocity.y *= this.friction;
-                this.x += this.velocity.x;
-                this.y += this.velocity.y;
-                this.alpha -= 0.01;
-            }
+            answer = n1 - n2;
         }
 
-        function createFireworks() {
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
-            for (let i = 0; i < 100; i++) { // Number of particles
-                const color = colors[Math.floor(Math.random() * colors.length)];
-                particles.push(new Particle(centerX, centerY, color));
-            }
-        }
-
-        function animateFireworks() {
-            ctx.globalAlpha = 0.1;
-            ctx.fillStyle = 'black';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            particles.forEach((particle, index) => {
-                if (particle.alpha <= 0) {
-                    particles.splice(index, 1);
-                } else {
-                    particle.update();
-                    particle.draw();
-                }
-            });
-
-            if (particles.length > 0) {
-                animationFrameId = requestAnimationFrame(animateFireworks);
-            } else {
-                cancelAnimationFrame(animationFrameId);
-                canvas.style.display = 'none';
-            }
-        }
-
-        function startFireworks() {
-            particles = [];
-            canvas.style.display = 'block';
-            createFireworks();
-            animateFireworks();
-            // Stop after 2 seconds regardless
-            fireworksTimeout = setTimeout(() => {
-                particles = [];
-            }, 2000);
-        }
-
-        function generateProblem() {
-            const isAddition = Math.random() < 0.5;
-            const a = Math.floor(Math.random() * 10);
-            const b = Math.floor(Math.random() * 3); // 0, 1, or 2 for easier questions
-            let correctAnswer;
-
-            if (isAddition) {
-                correctAnswer = a + b;
-                return { problem: `${a} + ${b} = ?`, correct: correctAnswer, isAddition: true };
-            } else {
-                let num1 = a;
-                let num2 = b;
-                // Ensure num1 >= num2 for non-negative result
-                if (num2 > num1) [num1, num2] = [num2, num1]; // Swap if needed
-                correctAnswer = num1 - num2;
-                return { problem: `${num1} - ${num2} = ?`, correct: correctAnswer, isAddition: false };
-            }
-        }
-
-        function getWrongAnswers(correct, isAddition) {
-            const wrongs = new Set();
-            while (wrongs.size < 3) {  // 3 wrongs for 4 total options
-                let wrong = Math.floor(Math.random() * (isAddition ? 19 : 10)); // Addition up to 18, subtraction 0-9
-                if (wrong !== correct) wrongs.add(wrong);
-            }
-            return Array.from(wrongs);
-        }
-
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-
-        function displayQuestion() {
-            if (currentQuestion >= totalQuestions) {
-                document.getElementById('problem').innerText = 'Game Over!';
-                document.getElementById('options').innerHTML = '';
-                document.getElementById('feedback').innerText = `You got ${score} out of ${totalQuestions}! 🎉`;
-                document.getElementById('restart').style.display = 'block';
-                // Hide score during game over, but show feedback
-                document.getElementById('score').style.display = 'none';
-                return;
-            }
-
-            const { problem, correct, isAddition } = generateProblem();
-            document.getElementById('problem').innerText = problem;
-
-            const wrongs = getWrongAnswers(correct, isAddition);
-            const options = shuffle([correct, ...wrongs]);
-
-            const optionsDiv = document.getElementById('options');
-            optionsDiv.innerHTML = '';
-            options.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.classList.add('option-btn');
-                btn.innerText = opt;
-                btn.onclick = () => checkAnswer(opt, correct);
-                optionsDiv.appendChild(btn);
-            });
-
-            document.getElementById('feedback').innerText = '';
-            document.getElementById('score').innerText = `Score: ${score}/${totalQuestions}`;
-        }
-
-        function checkAnswer(selected, correct) {
-            const feedback = document.getElementById('feedback');
-            if (selected === correct) {
-                feedback.innerText = 'Yay! Correct! 😊';
-                feedback.style.color = '#32cd32'; /* Green for correct */
-                score++;
-                currentQuestion++;
-                startFireworks(); // Trigger fireworks without delaying
-                displayQuestion();  // Immediate next question
-            } else {
-                feedback.innerText = `Oops! The answer is ${correct}. Try again! 😔`;
-                feedback.style.color = '#ff4500'; /* Red for incorrect */
-                currentQuestion++;
-                setTimeout(displayQuestion, 2000);  // Delay only on incorrect
-            }
-        }
-
-        function startGame() {
-            currentQuestion = 0;
-            score = 0;
-            document.getElementById('start').style.display = 'none';
-            document.getElementById('problem').style.display = 'block';
-            document.getElementById('options').style.display = 'flex';
-            document.getElementById('feedback').style.display = 'block';
-            document.getElementById('score').style.display = 'block';
-            displayQuestion();
-        }
-
-        document.getElementById('start').onclick = startGame;
-
-        document.getElementById('restart').onclick = () => {
-            currentQuestion = 0;
-            score = 0;
-            document.getElementById('restart').style.display = 'none';
-            document.getElementById('problem').style.display = 'block';
-            document.getElementById('options').style.display = 'flex';
-            document.getElementById('feedback').style.display = 'block';
-            document.getElementById('score').style.display = 'block';
-            displayQuestion();
+        return {
+            text: `${n1} ${operator} ${n2} = ?`,
+            correctAnswer: answer
         };
+    },
 
-        // Game does not start automatically; waits for start button
-    </script>
+    generateAnswers: function(correct) {
+        let answers = new Set();
+        answers.add(correct);
+
+        // Generate distractors
+        while (answers.size < 4) {
+            // Generate a wrong answer close to the correct one
+            let offset = this.getRandomInt(-3, 3);
+            let wrong = correct + offset;
+            
+            // Ensure no negative answers and no duplicate logic (Set handles duplicates)
+            if (wrong >= 0 && wrong !== correct) {
+                answers.add(wrong);
+            } else if (wrong < 0) {
+                // If negative, just add a random positive number
+                answers.add(this.getRandomInt(0, 10));
+            }
+        }
+
+        // Convert to array and shuffle
+        return Array.from(answers).sort(() => Math.random() - 0.5);
+    },
+
+    // --- Gameplay Flow ---
+
+    nextQuestion: function() {
+        if (this.questionNumber >= this.maxQuestions) {
+            this.endGame();
+            return;
+        }
+
+        this.questionNumber++;
+        document.getElementById('q-count').innerText = this.questionNumber;
+        
+        // Logic
+        this.currentQuestion = this.generateQuestion();
+        const choices = this.generateAnswers(this.currentQuestion.correctAnswer);
+
+        // Render
+        document.getElementById('question-text').innerText = this.currentQuestion.text;
+        
+        const container = document.getElementById('answers-container');
+        container.innerHTML = ''; // Clear old buttons
+
+        choices.forEach(choice => {
+            const btn = document.createElement('button');
+            btn.className = 'answer-btn';
+            btn.innerText = choice;
+            btn.onclick = () => this.checkAnswer(choice);
+            container.appendChild(btn);
+        });
+
+        this.isProcessing = false;
+    },
+
+    checkAnswer: function(selectedVal) {
+        if (this.isProcessing) return;
+        this.isProcessing = true;
+
+        if (selectedVal === this.currentQuestion.correctAnswer) {
+            // Correct!
+            this.score++;
+            document.getElementById('score-display').innerText = this.score;
+            this.showFeedback();
+        } else {
+            // Wrong
+            // Flash red visual cue on the specific button pressed could go here, 
+            // but for simplicity we just move to next question or show feedback.
+            // Requirement says: "If user selects correct answer... picture displayed"
+            // It doesn't specify what happens on wrong.
+            // To keep flow moving for a kid, let's just move to next question immediately on wrong answer 
+            // without the animal picture, so they learn that pictures = winning.
+            this.nextQuestion();
+        }
+    },
+
+    showFeedback: function() {
+        // Pick random animal
+        const randomImg = this.animalImages[Math.floor(Math.random() * this.animalImages.length)];
+        document.getElementById('animal-display').src = randomImg;
+        
+        // Show overlay
+        this.showScreen('feedback-screen');
+
+        // Wait 3 seconds then go to next
+        setTimeout(() => {
+            this.showScreen('game-screen');
+            this.nextQuestion();
+        }, 3000);
+    },
+
+    endGame: function() {
+        document.getElementById('final-score').innerText = this.score;
+        this.showScreen('end-screen');
+    }
+};
+
+// Start logic when screen loads? No, wait for user click.
+</script>
+
 </body>
 </html>
