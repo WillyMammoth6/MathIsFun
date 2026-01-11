@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Math Zoo</title>
+    <title>Math Zoo 3.0</title>
     <style>
         /* --- RESET & BASE STYLES --- */
         * {
             box-sizing: border-box;
-            user-select: none; /* Prevents text selection on tapping */
+            user-select: none;
             -webkit-tap-highlight-color: transparent;
         }
 
         body {
             margin: 0;
             padding: 0;
-            background-color: #121212; /* Dark Theme Background */
+            background-color: #121212; /* Dark Theme */
             color: #ffffff;
-            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif; /* Friendly font */
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
             height: 100vh;
             width: 100vw;
             overflow: hidden;
@@ -28,7 +28,7 @@
 
         #app {
             width: 100%;
-            max-width: 600px; /* Tablet constraint */
+            max-width: 600px;
             height: 100%;
             position: relative;
             padding: 20px;
@@ -37,10 +37,7 @@
             justify-content: center;
         }
 
-        /* --- UTILITY CLASSES --- */
-        .hidden {
-            display: none !important;
-        }
+        .hidden { display: none !important; }
 
         .screen {
             display: flex;
@@ -51,25 +48,20 @@
             height: 100%;
             text-align: center;
             animation: fadeIn 0.5s ease-out;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
 
         /* --- TYPOGRAPHY --- */
         h1 {
             font-size: 3rem;
-            color: #FFD700; /* Gold */
+            color: #FFD700;
             text-shadow: 2px 2px 0px #d35400;
             margin-bottom: 20px;
         }
-
-        h2 {
-            font-size: 2rem;
-            margin-bottom: 10px;
-        }
-
-        p {
-            font-size: 1.2rem;
-            color: #bdc3c7;
-        }
+        h2 { font-size: 2rem; margin-bottom: 10px; }
+        p { font-size: 1.2rem; color: #bdc3c7; }
 
         /* --- BUTTONS --- */
         button {
@@ -79,13 +71,9 @@
             font-family: inherit;
             font-weight: bold;
             box-shadow: 0 4px 0 rgba(0,0,0,0.4);
-            transition: transform 0.1s, filter 0.1s;
+            transition: transform 0.1s;
         }
-
-        button:active {
-            transform: translateY(4px);
-            box-shadow: none;
-        }
+        button:active { transform: translateY(4px); box-shadow: none; }
 
         .btn-large {
             font-size: 1.5rem;
@@ -95,12 +83,12 @@
             width: 80%;
             max-width: 300px;
         }
-
         .btn-easy { background-color: #2ecc71; color: white; }
         .btn-hard { background-color: #e74c3c; color: white; }
         .btn-restart { background-color: #3498db; color: white; }
+        .btn-manage { background-color: #9b59b6; color: white; font-size: 1rem; padding: 10px 20px; }
 
-        /* --- GAME SCREEN SPECIFICS --- */
+        /* --- GAMEPLAY UI --- */
         .hud {
             position: absolute;
             top: 15px;
@@ -143,27 +131,25 @@
             padding: 20px;
             border-radius: 15px;
         }
+        .answer-btn:active { background-color: #9b59b6; }
 
-        .answer-btn:active {
-            background-color: #9b59b6;
-        }
-
-        /* --- FEEDBACK OVERLAY (ANIMAL PICTURE) --- */
+        /* --- ANIMAL REWARD --- */
         #feedback-screen {
             position: absolute;
             top: 0;
             left: 0;
             z-index: 100;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.95);
         }
 
         .animal-img {
             max-width: 90%;
-            max-height: 60vh;
+            max-height: 55vh;
             border-radius: 20px;
             border: 5px solid #fff;
             box-shadow: 0 0 20px rgba(255,255,255,0.2);
             object-fit: cover;
+            background-color: #333;
         }
 
         .praise-text {
@@ -174,53 +160,101 @@
             animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        /* --- ANIMATIONS --- */
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        /* --- DIAGNOSTIC SCREEN --- */
+        #diagnostic-screen {
+            overflow-y: auto;
+            justify-content: flex-start;
+            padding-top: 20px;
+            background: #1a1a1a;
+        }
+        
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+            width: 100%;
+            padding: 10px;
         }
 
-        @keyframes popIn {
-            from { transform: scale(0); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+        .gallery-item {
+            aspect-ratio: 1;
+            width: 100%;
+            background: #333;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid transparent;
         }
 
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .gallery-item.good { border-color: #2ecc71; }
+        .gallery-item.bad { border-color: #e74c3c; opacity: 0.3; }
+        
+        .status-bar {
+            position: sticky;
+            top: 0;
+            background: #2c3e50;
+            width: 100%;
+            padding: 10px;
+            z-index: 10;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body>
 
 <div id="app">
     
-    <!-- SCREEN: TITLE -->
+    <!-- TITLE SCREEN -->
     <div id="title-screen" class="screen">
-        <h1>Math Zoo 🦁</h1>
+        <h1>Math Zoo 3.0 🦁</h1>
         <p>Pick a difficulty to start!</p>
         <br>
         <button class="btn-large btn-easy" onclick="game.startGame('easy')">Easy 🙂</button>
         <button class="btn-large btn-hard" onclick="game.startGame('hard')">Hard 😎</button>
+        <br>
+        <button class="btn-manage" onclick="game.openDiagnostics()">🔧 Manage Zoo</button>
     </div>
 
-    <!-- SCREEN: GAMEPLAY -->
+    <!-- DIAGNOSTIC SCREEN -->
+    <div id="diagnostic-screen" class="screen hidden">
+        <div class="status-bar">
+            <div>Working Images: <span id="diag-count" style="color:#2ecc71">0</span></div>
+            <button class="btn-restart" style="padding: 5px 20px; font-size: 1rem;" onclick="game.resetToTitle()">Return to Title</button>
+        </div>
+        <div class="gallery-grid" id="gallery-container">
+            <!-- Thumbnails injected here -->
+        </div>
+    </div>
+
+    <!-- GAME SCREEN -->
     <div id="game-screen" class="screen hidden">
         <div class="hud">Score: <span id="score-display">0</span></div>
-        
         <div class="question-box">
             <div class="question-text" id="question-text">1 + 1 = ?</div>
         </div>
-
-        <div class="answers-grid" id="answers-container">
-            <!-- Buttons injected by JS -->
-        </div>
+        <div class="answers-grid" id="answers-container"></div>
         <p style="margin-top:20px; opacity: 0.5;">Question <span id="q-count">1</span> / 10</p>
     </div>
 
-    <!-- SCREEN: FEEDBACK (CORRECT) -->
+    <!-- REWARD SCREEN -->
     <div id="feedback-screen" class="screen hidden">
-        <img id="animal-display" class="animal-img" src="" alt="Cute Animal">
+        <img id="animal-display" class="animal-img" src="" alt="Cute Animal" onerror="game.handleImageError(this)">
         <div class="praise-text">Correct!</div>
     </div>
 
-    <!-- SCREEN: GAME OVER -->
+    <!-- END SCREEN -->
     <div id="end-screen" class="screen hidden">
         <h1>Great Job!</h1>
         <h2>Your Score</h2>
@@ -233,36 +267,101 @@
 </div>
 
 <script>
-/**
- * Game Logic Module
- * Handles state, math generation, and DOM updates.
- */
 const game = {
-    // Configuration
     maxQuestions: 10,
-    
-    // State
     score: 0,
     questionNumber: 0,
     difficulty: 'easy',
     currentQuestion: null,
-    isProcessing: false, // Prevents double tapping
+    isProcessing: false,
+    
+    // The "Working" list - starts full, gets pruned by the Diagnostic tool
+    activeImages: [], 
 
-    // curated list of high-quality cute animal images
-    animalImages: [
-        "https://images.unsplash.com/photo-1591160690555-5debfba289f0?w=600&q=80", // Golden Retriever Puppy
-        "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&q=80", // Kitten
-        "https://images.unsplash.com/photo-1585110396000-c9285745b25c?w=600&q=80", // Baby Sloth
-        "https://images.unsplash.com/photo-1505628346881-b72e278045a4?w=600&q=80", // Fox
-        "https://images.unsplash.com/photo-1555685812-4b943f1cb0eb?w=600&q=80", // Baby Bunny
-        "https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?w=600&q=80", // Puppy with eyes closed
-        "https://images.unsplash.com/photo-1535241556845-3a31a1913f28?w=600&q=80", // Meerkat
-        "https://images.unsplash.com/photo-1518796745738-41048802f99a?w=600&q=80", // Baby Rabbit
-        "https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?w=600&q=80", // Kitten in basket
-        "https://images.unsplash.com/photo-1501686637-b7aa9c48a882?w=600&q=80"  // Panda
+    // The Raw List
+    sourceImages: [
+        // --- AXOLOTLS (Wikimedia Commons - Very Reliable) ---
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Axolotl_neoteny.jpg/600px-Axolotl_neoteny.jpg",
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Axolotl_ganz.jpg/600px-Axolotl_ganz.jpg",
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Axolotl_Ambystoma_mexicanum.jpg/600px-Axolotl_Ambystoma_mexicanum.jpg",
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Ambystoma_mexicanum_25112012_01.jpg/600px-Ambystoma_mexicanum_25112012_01.jpg",
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Axolotl_Ambystoma_mexicanum_1.jpg/600px-Axolotl_Ambystoma_mexicanum_1.jpg",
+
+        // --- DOGS & PUPPIES ---
+        "https://images.unsplash.com/photo-1591160690555-5debfba289f0?w=600&q=80",
+        "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600&q=80",
+        "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=600&q=80",
+        "https://images.unsplash.com/photo-1588943211346-0908a1fb0b01?w=600&q=80",
+        "https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?w=600&q=80",
+        "https://images.unsplash.com/photo-1507146426996-ef05306b995a?w=600&q=80",
+        "https://images.unsplash.com/photo-1561037404-61cd46aa615b?w=600&q=80",
+        "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=600&q=80",
+        "https://images.unsplash.com/photo-1552053831-71594a27632d?w=600&q=80",
+        "https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?w=600&q=80",
+
+        // --- KITTENS ---
+        "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&q=80",
+        "https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=600&q=80",
+        "https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=600&q=80",
+        "https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?w=600&q=80",
+        "https://images.unsplash.com/photo-1526336024174-e58f5cdd8e13?w=600&q=80",
+        "https://images.unsplash.com/photo-1519052537078-e6302a4968d4?w=600&q=80",
+        "https://images.unsplash.com/photo-1501820488136-72669149e0d4?w=600&q=80",
+        "https://images.unsplash.com/photo-1495360019602-e05980bf6774?w=600&q=80",
+        "https://images.unsplash.com/photo-1506755855567-92ff770e8d00?w=600&q=80",
+
+        // --- RED PANDAS & BEARS ---
+        "https://images.unsplash.com/photo-1540342917757-c4667a4e6ce9?w=600&q=80",
+        "https://images.unsplash.com/photo-1570288685280-7802a8f8c4fa?w=600&q=80",
+        "https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=600&q=80",
+        "https://images.unsplash.com/photo-1501686637-b7aa9c48a882?w=600&q=80",
+        "https://images.unsplash.com/photo-1526716173434-a1b560f2065d?w=600&q=80",
+
+        // --- BUNNIES & SMALL ANIMALS ---
+        "https://images.unsplash.com/photo-1555685812-4b943f1cb0eb?w=600&q=80",
+        "https://images.unsplash.com/photo-1585110396000-c9285745b25c?w=600&q=80",
+        "https://images.unsplash.com/photo-1591382386627-349b692688ff?w=600&q=80",
+        "https://images.unsplash.com/photo-1480554840075-72afa2f687e9?w=600&q=80",
+        "https://images.unsplash.com/photo-1535241556845-3a31a1913f28?w=600&q=80",
+        "https://images.unsplash.com/photo-1579295593259-c290c0570b55?w=600&q=80",
+        "https://images.unsplash.com/photo-1556515814-25e227092144?w=600&q=80",
+        
+        // --- FOXES ---
+        "https://images.unsplash.com/photo-1505628346881-b72e278045a4?w=600&q=80",
+        "https://images.unsplash.com/photo-1516934024742-b461fba47600?w=600&q=80",
+        "https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=600&q=80",
+        
+        // --- EXTRA CUTE MIX ---
+        "https://images.unsplash.com/photo-1557285226-809804537cb9?w=600&q=80",
+        "https://images.unsplash.com/photo-1616422891961-d70cb994f271?w=600&q=80",
+        "https://images.unsplash.com/photo-1549421263-6064833b071b?w=600&q=80",
+        "https://images.unsplash.com/photo-1599146110825-9df81b896956?w=600&q=80",
+        "https://images.unsplash.com/photo-1575452174360-1e52db67df21?w=600&q=80",
+        "https://images.unsplash.com/photo-1517551390445-56ee3667623d?w=600&q=80",
+        "https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=600&q=80",
+        "https://images.unsplash.com/photo-1520627702220-3b999fa71309?w=600&q=80",
+        "https://images.unsplash.com/photo-1560807707-8cc77767d783?w=600&q=80",
+        "https://images.unsplash.com/photo-1555546944-17c3855a90e3?w=600&q=80",
+        "https://images.unsplash.com/photo-1534361960057-19889db9621e?w=600&q=80",
+        "https://images.unsplash.com/photo-1491604612935-c80f6d50423c?w=600&q=80",
+        "https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=600&q=80",
+        "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=600&q=80",
+        "https://images.unsplash.com/photo-1571988840298-3b5301d510f1?w=600&q=80",
+        "https://images.unsplash.com/photo-1601758177266-bc599de87707?w=600&q=80",
+        "https://images.unsplash.com/photo-1581888227599-77981198520b?w=600&q=80",
+        "https://images.unsplash.com/photo-1565457497495-9372bd16dd4d?w=600&q=80",
+        "https://images.unsplash.com/photo-1555169062-013468b47731?w=600&q=80",
+        "https://images.unsplash.com/photo-1492572132334-a10c28340d0d?w=600&q=80"
     ],
 
-    // --- Navigation Functions ---
+    init: function() {
+        // Initialize active list with everything. 
+        // Bad ones will be removed by Diagnostic tool.
+        // If user doesn't run diagnostic, error handler in game catches them.
+        this.activeImages = [...this.sourceImages];
+    },
+
+    // --- GAME LOGIC ---
 
     startGame: function(mode) {
         this.difficulty = mode;
@@ -270,26 +369,63 @@ const game = {
         this.questionNumber = 0;
         this.isProcessing = false;
         
-        // Update UI
         document.getElementById('score-display').innerText = this.score;
         this.showScreen('game-screen');
-        
-        // Generate first question
         this.nextQuestion();
     },
 
     resetToTitle: function() {
+        // Stop any pending diagnositcs? No, let them render.
         this.showScreen('title-screen');
     },
 
     showScreen: function(id) {
-        // Hide all screens
         document.querySelectorAll('.screen').forEach(el => el.classList.add('hidden'));
-        // Show target
         document.getElementById(id).classList.remove('hidden');
+        window.scrollTo(0,0);
     },
 
-    // --- Math Logic ---
+    // --- DIAGNOSTICS & MANAGEMENT ---
+
+    openDiagnostics: function() {
+        this.showScreen('diagnostic-screen');
+        const container = document.getElementById('gallery-container');
+        container.innerHTML = '';
+        const countDisplay = document.getElementById('diag-count');
+
+        // Reset active list to full source, we will rebuild it based on valid ones
+        // Actually, let's just flag the bad ones in the current active list
+        // Strategy: Iterate source. Create Image. If onload, add to Active. If onerror, ignore.
+        
+        this.activeImages = []; // Clear current active list
+        
+        this.sourceImages.forEach((url, index) => {
+            const div = document.createElement('div');
+            div.className = 'gallery-item';
+            
+            const img = document.createElement('img');
+            img.src = url;
+            
+            // Handlers
+            img.onload = () => {
+                div.classList.add('good');
+                this.activeImages.push(url);
+                countDisplay.innerText = this.activeImages.length;
+            };
+            
+            img.onerror = () => {
+                div.classList.add('bad');
+                // Remove broken image icon, maybe show text
+                img.style.display = 'none';
+                div.innerHTML = '<span style="color:red; font-size:20px; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%)">❌</span>';
+            };
+
+            div.appendChild(img);
+            container.appendChild(div);
+        });
+    },
+
+    // --- MATH LOGIC ---
 
     getRandomInt: function(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -297,14 +433,12 @@ const game = {
 
     generateQuestion: function() {
         let n1, n2, operator, answer;
-        const isAddition = Math.random() > 0.5; // 50/50 chance of add or subtract
+        const isAddition = Math.random() > 0.5;
 
         if (this.difficulty === 'easy') {
-            // Easy: N1 (1-9), N2 (1-2)
             n1 = this.getRandomInt(1, 9);
             n2 = this.getRandomInt(1, 2);
         } else {
-            // Hard: N1 (1-9), N2 (1-9)
             n1 = this.getRandomInt(1, 9);
             n2 = this.getRandomInt(1, 9);
         }
@@ -314,65 +448,43 @@ const game = {
             answer = n1 + n2;
         } else {
             operator = '-';
-            // Logic to prevent negative answers for 6 year olds
-            // Ensure n1 is the larger number
-            if (n2 > n1) {
-                let temp = n1;
-                n1 = n2;
-                n2 = temp;
-            }
+            if (n2 > n1) { [n1, n2] = [n2, n1]; }
             answer = n1 - n2;
         }
 
-        return {
-            text: `${n1} ${operator} ${n2} = ?`,
-            correctAnswer: answer
-        };
+        return { text: `${n1} ${operator} ${n2} = ?`, correctAnswer: answer };
     },
 
     generateAnswers: function(correct) {
         let answers = new Set();
         answers.add(correct);
-
-        // Generate distractors
         while (answers.size < 4) {
-            // Generate a wrong answer close to the correct one
             let offset = this.getRandomInt(-3, 3);
             let wrong = correct + offset;
-            
-            // Ensure no negative answers and no duplicate logic (Set handles duplicates)
             if (wrong >= 0 && wrong !== correct) {
                 answers.add(wrong);
             } else if (wrong < 0) {
-                // If negative, just add a random positive number
                 answers.add(this.getRandomInt(0, 10));
             }
         }
-
-        // Convert to array and shuffle
         return Array.from(answers).sort(() => Math.random() - 0.5);
     },
-
-    // --- Gameplay Flow ---
 
     nextQuestion: function() {
         if (this.questionNumber >= this.maxQuestions) {
             this.endGame();
             return;
         }
-
         this.questionNumber++;
         document.getElementById('q-count').innerText = this.questionNumber;
         
-        // Logic
         this.currentQuestion = this.generateQuestion();
         const choices = this.generateAnswers(this.currentQuestion.correctAnswer);
 
-        // Render
         document.getElementById('question-text').innerText = this.currentQuestion.text;
         
         const container = document.getElementById('answers-container');
-        container.innerHTML = ''; // Clear old buttons
+        container.innerHTML = ''; 
 
         choices.forEach(choice => {
             const btn = document.createElement('button');
@@ -381,7 +493,6 @@ const game = {
             btn.onclick = () => this.checkAnswer(choice);
             container.appendChild(btn);
         });
-
         this.isProcessing = false;
     },
 
@@ -390,35 +501,47 @@ const game = {
         this.isProcessing = true;
 
         if (selectedVal === this.currentQuestion.correctAnswer) {
-            // Correct!
             this.score++;
             document.getElementById('score-display').innerText = this.score;
             this.showFeedback();
         } else {
-            // Wrong
-            // Flash red visual cue on the specific button pressed could go here, 
-            // but for simplicity we just move to next question or show feedback.
-            // Requirement says: "If user selects correct answer... picture displayed"
-            // It doesn't specify what happens on wrong.
-            // To keep flow moving for a kid, let's just move to next question immediately on wrong answer 
-            // without the animal picture, so they learn that pictures = winning.
             this.nextQuestion();
         }
     },
 
     showFeedback: function() {
-        // Pick random animal
-        const randomImg = this.animalImages[Math.floor(Math.random() * this.animalImages.length)];
-        document.getElementById('animal-display').src = randomImg;
-        
-        // Show overlay
+        // Fallback if list is empty
+        if (this.activeImages.length === 0) {
+            // Restore original list if all failed? Or just use a text feedback
+            this.activeImages = [...this.sourceImages]; 
+        }
+
+        const randomImg = this.activeImages[Math.floor(Math.random() * this.activeImages.length)];
+        const imgEl = document.getElementById('animal-display');
+        imgEl.src = "";
+        imgEl.src = randomImg;
         this.showScreen('feedback-screen');
 
-        // Wait 3 seconds then go to next
         setTimeout(() => {
             this.showScreen('game-screen');
             this.nextQuestion();
         }, 3000);
+    },
+
+    // Runtime error handler for gameplay (if user skips diagnostics)
+    handleImageError: function(imgEl) {
+        // Remove the broken URL from active list so it doesn't show again
+        const brokenUrl = imgEl.src;
+        this.activeImages = this.activeImages.filter(u => u !== brokenUrl);
+        
+        // Try another one immediately
+        if (this.activeImages.length > 0) {
+            const nextImg = this.activeImages[Math.floor(Math.random() * this.activeImages.length)];
+            imgEl.src = nextImg;
+        } else {
+            // All broken? Show text
+            imgEl.style.display = 'none';
+        }
     },
 
     endGame: function() {
@@ -427,7 +550,8 @@ const game = {
     }
 };
 
-// Start logic when screen loads? No, wait for user click.
+// Start init
+game.init();
 </script>
 
 </body>
